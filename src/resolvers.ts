@@ -33,21 +33,13 @@ export interface Resolver<T> extends ResolverOptions<T> {
 export interface BuildResolver<T> extends Resolver<T>, BuildResolverOptions<T> {
   injectionMode?: InjectionModeType
   injector?: InjectorFunction
-
   setLifetime(lifetime: LifetimeType): this
-
   setInjectionMode(mode: InjectionModeType): this
-
   singleton(): this
-
   scoped(): this
-
   transient(): this
-
   proxy(): this
-
   classic(): this
-
   inject(injector: InjectorFunction): this
 }
 

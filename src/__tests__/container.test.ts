@@ -401,7 +401,6 @@ describe('container', function() {
 
     it('throws an AwilixResolutionError when there are cyclic dependencies', function() {
       const container = createContainer()
-
       container.register({
         first: asFunction((cradle: any) => cradle.second),
         second: asFunction((cradle: any) => cradle.third),
