@@ -419,7 +419,7 @@ function createInjectorProxy(
  * @this {Registration}
  * The `this` context is a resolver.
  *
- * @originalResolve {Function} fn
+ * @param {Function} originalResolve
  * The original function for dependency resolution
  *
  * @return {Function}
