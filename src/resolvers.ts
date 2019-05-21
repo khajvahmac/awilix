@@ -33,13 +33,21 @@ export interface Resolver<T> extends ResolverOptions<T> {
 export interface BuildResolver<T> extends Resolver<T>, BuildResolverOptions<T> {
   injectionMode?: InjectionModeType
   injector?: InjectorFunction
+
   setLifetime(lifetime: LifetimeType): this
+
   setInjectionMode(mode: InjectionModeType): this
+
   singleton(): this
+
   scoped(): this
+
   transient(): this
+
   proxy(): this
+
   classic(): this
+
   inject(injector: InjectorFunction): this
 }
 
@@ -200,7 +208,7 @@ export function asClass<T = {}>(
     return Reflect.construct(Type, arguments)
   }
 
-  const resolve = generateResolve(newClass, Type)
+  const resolve = makeResolveLazy(generateResolve(newClass, Type))
   return createDisposableResolver(
     createBuildResolver({
       ...opts,
@@ -411,6 +419,108 @@ function createInjectorProxy(
   )
 
   return proxy
+}
+
+/**
+ * Makes dependency resolution lazy by wrapping the resolved value of original resolve function in a Proxy object
+ *
+ * @this {Registration}
+ * The `this` context is a resolver.
+ *
+ * @originalResolve {Function} fn
+ * The original function for dependency resolution
+ *
+ * @return {Function}
+ * The function used for lazy dependency resolution
+ */
+function makeResolveLazy(originalResolve: Function): any {
+  let resolved: any = null
+  return function resolve(this: any, container: AwilixContainer) {
+    let self: any = this
+    return new Proxy(
+      {},
+      {
+        construct(_, argArray, newTarget?): object {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.construct(resolved, argArray, newTarget)
+        },
+        defineProperty(_, p, attributes) {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.defineProperty(resolved, p, attributes)
+        },
+        deleteProperty(_, propertyKey): boolean {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.deleteProperty(resolved, propertyKey)
+        },
+        enumerate(_): any {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.enumerate(resolved)
+        },
+        get(_, name) {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return resolved[name]
+        },
+        getOwnPropertyDescriptor(_, p) {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.getOwnPropertyDescriptor(resolved, p)
+        },
+        getPrototypeOf(): object {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Object.getPrototypeOf(resolved)
+        },
+        has(_, p): boolean {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.has(resolved, p)
+        },
+        isExtensible(): boolean {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return resolved.isExtensible()
+        },
+        ownKeys(_) {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.ownKeys(resolved)
+        },
+        preventExtensions(_) {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.preventExtensions(resolved)
+        },
+        set(_, p, value): boolean {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.set(resolved, p, value)
+        },
+        setPrototypeOf(_, proto): boolean {
+          if (!resolved) {
+            resolved = originalResolve.call(self, container)
+          }
+          return Reflect.setPrototypeOf(resolved, proto)
+        }
+      }
+    )
+  }
 }
 
 /**

@@ -401,6 +401,7 @@ describe('container', function() {
 
     it('throws an AwilixResolutionError when there are cyclic dependencies', function() {
       const container = createContainer()
+
       container.register({
         first: asFunction((cradle: any) => cradle.second),
         second: asFunction((cradle: any) => cradle.third),
@@ -409,6 +410,38 @@ describe('container', function() {
 
       const err = throws(() => container.resolve('first'))
       expect(err.message).toContain('first -> second -> third -> second')
+    })
+
+    it('resolves cyclic dependencies when using class resolver', function() {
+      const container = createContainer()
+
+      class FirstClass {
+        second: any
+        constructor(cradle: any) {
+          this.second = cradle.second
+        }
+
+        getSecond(): SecondClass {
+          return this.second
+        }
+      }
+      class SecondClass {
+        first: any
+        constructor(cradle: any) {
+          this.first = cradle.first
+        }
+
+        getFirst(): FirstClass {
+          return this.first
+        }
+      }
+      container.register({
+        first: asClass(FirstClass),
+        second: asClass(SecondClass)
+      })
+
+      let first: FirstClass = container.resolve('first')
+      expect(first.getSecond().getFirst()).not.toBeNull()
     })
 
     it('throws an AwilixResolutionError when the lifetime is unknown', function() {
