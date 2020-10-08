@@ -1,6 +1,6 @@
 {
   "name": "awilix",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "description": "Extremely powerful dependency injection container.",
   "main": "lib/awilix.js",
   "module": "lib/awilix.module.js",
@@ -34,7 +34,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jeffijoe/awilix.git"
+    "url": "git+https://github.com/khajvahmac/awilix.git"
   },
   "keywords": [
     "dependency-injection",

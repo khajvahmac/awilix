@@ -481,12 +481,15 @@ function generateResolve(fn: Function, dependencyParseTarget?: Function) {
   }
 }
 
+export const DEPS_GRAPH = new Map()
+
 /**
  * Parses the dependencies from the given function.
  * If it's a class and has an extends clause, and no reported dependencies, attempt to parse it's super constructor.
  */
-function parseDependencies(fn: Function): Array<Parameter> {
+export function parseDependencies(fn: Function): Array<Parameter> {
   const result = parseParameterList(fn.toString())
+  DEPS_GRAPH.set(fn.name, result)
   if (result.length > 0) {
     return result
   }
